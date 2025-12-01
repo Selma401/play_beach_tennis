@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Nova Senha — Play Beach Tennis{% endblock %}
+
+{% block content %}
+<section class="container">
+  <h2>🔑 Criar Nova Senha</h2>
+
+  <form action="/reset" method="POST">
+    <input type="hidden" name="email" value="{{ email }}">
+    <input type="password" name="senha" placeholder="Nova senha" required>
+    <input type="password" name="confirmar" placeholder="Confirmar senha" required>
+    <button class="btn btn-primary">Salvar Nova Senha</button>
+  </form>
+
+  {% if msg %}
+    <p class="alert">{{ msg }}</p>
+  {% endif %}
+</section>
+{% endblock %}

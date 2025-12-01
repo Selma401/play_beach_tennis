@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}🏆 Ranking — Admin{% endblock %}
+
+{% block content %}
+<section class="container">
+
+  <div class="card page-header">
+    <h1 class="page-title">🏆 Ranking Geral de Jogadores</h1>
+    <p class="lead">Pontuação de acordo com vitórias nos torneios.</p>
+  </div>
+
+  <div class="card filtro-card">
+    <input type="text" id="pesquisaJogador" class="input-text" placeholder="🔍 Buscar jogador...">
+  </div>
+
+  <div class="card tabela-card">
+    <table class="tabela" id="rankingTabela">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Jogador</th>
+          <th>Vitórias</th>
+          <th>Pontos</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card tabela-card">
+    <h2>📊 Top 6 Jogadores — Pontuação</h2>
+    <canvas id="graficoRanking" height="120"></canvas>
+  </div>
+
+</section>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/static/js/ranking_admin.js"></script>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}🎾 Partidas — Play Beach Tennis{% endblock %}
+
+{% block content %}
+<section class="container">
+  <div class="card page-header">
+    <h1 class="page-title">🎾 Partidas</h1>
+    <p class="lead">Gerencie partidas: automáticas, manuais, resultados e reservas.</p>
+  </div>
+
+  <!-- GERAR / CRIAR -->
+  <div class="card">
+    <h3>Gerar / Criar Partidas</h3>
+
+    <div class="form-row">
+      <select id="selTorneioParaGerar" class="input-text">
+        <option value="">Selecione torneio</option>
+      </select>
+
+      <select id="tipo" class="input-text">
+        <option value="individual">Individual</option>
+        <option value="dupla_masculina">Dupla Masculina</option>
+        <option value="dupla_feminina">Dupla Feminina</option>
+        <option value="dupla_mista">Dupla Mista</option>
+      </select>
+
+      <button id="gerarAuto" class="btn">Gerar Automáticas</button>
+      <button id="btnNovoManual" class="btn">Criar Manual</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="partidas">🎾 Partidas</button>
+      <button class="tab-btn" data-tab="reservas">📅 Reservas</button>
+    </div>
+  </div>
+
+  <!-- TAB: PARTIDAS -->
+  <div id="tab-partidas" class="tab-content" style="display:block;">
+    <form id="formPartidaManual" class="card" style="display:none;margin-top:10px;">
+      <h3>Nova Partida Manual</h3>
+
+      <div class="form-grid">
+        <select id="jogador1" class="input-text"></select>
+        <select id="jogador1b" class="input-text"></select>
+        <select id="jogador2" class="input-text"></select>
+        <select id="jogador2b" class="input-text"></select>
+        <input id="quadra" class="input-text" placeholder="Quadra">
+        <input id="horario" class="input-text" type="time">
+      </div>
+
+      <button type="submit" class="btn-editar" style="margin-top:10px;">Salvar Partida</button>
+    </form>
+
+    <div class="card" style="margin-top:15px;">
+      <h3>Partidas por Torneio</h3>
+
+      <select id="selTorneioLista" class="input-text">
+        <option value="">Selecione torneio</option>
+      </select>
+
+      <table class="tabela" id="tabelaPartidas" style="margin-top:8px;">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Torneio</th>
+            <th>Tipo</th>
+            <th>Jogadores</th>
+            <th>Placar</th>
+            <th>Quadra</th>
+            <th>Horário</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: RESERVAS -->
+  <div id="tab-reservas" class="tab-content" style="display:none;">
+    <div class="card">
+      <h3>📅 Reservas de Quadras</h3>
+
+      <div class="form-row">
+        <select id="res_torneio_filter" class="input-text">
+          <option value="">Todos</option>
+        </select>
+        <button id="btn_carregar_res" class="btn-editar">🔄 Atualizar</button>
+      </div>
+
+      <table class="tabela" id="tbl_reservas" style="margin-top:10px;">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Torneio</th>
+            <th>Quadra</th>
+            <th>Horário</th>
+            <th>Reservado</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- MODAL RESULTADO -->
+<div id="modalResultado" class="modal-bg" style="display:none;">
+  <div class="modal-box">
+    <h3>Registrar Resultado</h3>
+
+    <input id="res_partida_id" type="hidden">
+
+    <input id="set1" class="input-text" placeholder="Set 1 (ex: 6-4)">
+    <input id="set2" class="input-text" placeholder="Set 2 (opcional)">
+    <input id="set3" class="input-text" placeholder="Set 3 / Tie-Break (opcional)">
+
+    <select id="res_vencedor" class="input-text"></select>
+
+    <div class="modal-actions">
+      <button id="btnSalvarResultado" class="btn-editar">Salvar</button>
+      <button id="btnFecharResultado" class="btn">Cancelar</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/partidas.js?v=2"></script>
+{% endblock %}

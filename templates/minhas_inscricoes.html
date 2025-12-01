@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}🎟️ Minhas Inscrições — Play Beach Tennis{% endblock %}
+
+{% block content %}
+
+<section class="container">
+  <h1>🎟️ Minhas Inscrições</h1>
+  <p class="lead">Veja suas inscrições realizadas em torneios.</p>
+
+  <div id="listaInscricoes" style="margin-top:20px;">
+    <p>Carregando inscrições...</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const lista = document.getElementById("listaInscricoes");
+
+  try {
+    const res = await fetch("/api/minhas_inscricoes");
+    const data = await res.json();
+
+    if (!res.ok || !Array.isArray(data) || data.length === 0) {
+      lista.innerHTML = "<p style='color:#777;'>Você ainda não possui inscrições.</p>";
+      return;
+    }
+
+    lista.innerHTML = "";
+    data.forEach(insc => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.marginBottom = "12px";
+      card.innerHTML = `
+        <strong>${insc.torneio}</strong><br>
+        💰 Valor: R$ ${parseFloat(insc.valor).toFixed(2)}<br>
+        💳 Pagamento: ${insc.forma_pagamento}<br>
+        🎯 Nível: ${insc.nivel}<br>
+        🕒 Data: ${new Date(insc.data_inscricao).toLocaleDateString('pt-BR')}
+      `;
+      lista.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error("Erro ao carregar inscrições:", err);
+    lista.innerHTML = "<p style='color:red;'>Erro ao carregar inscrições. Tente novamente.</p>";
+  }
+});
+</script>
+
+{% endblock %}

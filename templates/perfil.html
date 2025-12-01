@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}👤 Meu Perfil — Play Beach Tennis{% endblock %}
+
+{% block content %}
+<div class="container perfil-container">
+  <h2>👤 Meu Perfil</h2>
+  <p class="subtitle">Veja e atualize suas informações pessoais.</p>
+
+  <!-- VISUALIZAÇÃO -->
+  <div id="perfil-view" class="perfil-card">
+  <p><strong>Nome:</strong> <span id="v-nome">...</span></p>
+  <p><strong>CPF:</strong> <span id="v-cpf">...</span></p>
+  <p><strong>Sexo:</strong> <span id="v-sexo">...</span></p>
+  <p><strong>Idade:</strong> <span id="v-idade">...</span></p>
+  <p><strong>Telefone:</strong> <span id="v-telefone">...</span></p>
+  <p><strong>Cidade:</strong> <span id="v-cidade">...</span></p>
+  <p><strong>Estado:</strong> <span id="v-estado">...</span></p>
+  <p><strong>Email:</strong> <span id="v-email">...</span></p>
+
+  <button id="btn-editar" class="btn">✏️ Editar</button>
+</div>
+
+  <!-- FORMULÁRIO -->
+  <form id="perfil-form" style="display:none; margin-top:20px;">
+    <label>Nome</label>
+    <input id="nome" type="text" required>
+
+    <label>Telefone</label>
+    <input id="telefone" type="text" required>
+
+    <label>Cidade</label>
+    <input id="cidade" type="text" required>
+
+    <label>Estado</label>
+    <input id="estado" type="text" required maxlength="2" style="text-transform:uppercase;">
+
+    <label>CPF</label>
+    <input id="cpf" type="text">
+
+    <div class="btn-group">
+      <button type="submit" class="btn">💾 Salvar</button>
+      <button type="button" id="btn-cancelar" class="btn secundario">Cancelar</button>
+    </div>
+    <p id="msg" class="mensagem"></p>
+  </form>
+</div>
+
+<style>
+  .perfil-container { max-width: 600px; margin: 30px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+  .perfil-card p { margin: 8px 0; font-size: 1rem; }
+  .perfil-card { margin-bottom: 15px; }
+  .btn { background: #007b55; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+  .btn:hover { background: #00a56d; }
+  .btn.secundario { background: #ccc; color: #222; }
+  .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+  input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; }
+  .mensagem { margin-top: 10px; font-weight: 600; }
+  .subtitle { color: #555; margin-bottom: 10px; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const perfilView = document.getElementById("perfil-view");
+  const perfilForm = document.getElementById("perfil-form");
+  const msg = document.getElementById("msg");
+  const btnEditar = document.getElementById("btn-editar");
+  const btnCancelar = document.getElementById("btn-cancelar");
+
+  if (!perfilView || !perfilForm || !btnEditar || !btnCancelar) return;
+
+  async function getUserSession() {
+    const res = await fetch("/api/session-info");
+    const data = await res.json();
+    if (res.ok && data.user_id) {
+      sessionStorage.setItem("user_id", data.user_id);
+      return data.user_id;
+    }
+    return null;
+  }
+
+  async function carregarPerfil() {
+    const userId = sessionStorage.getItem("user_id") || await getUserSession();
+    if (!userId) {
+      perfilView.innerHTML = "<p style='color:red;'>Erro: usuário não autenticado.</p>";
+      return;
+    }
+
+    const res = await fetch(`/api/usuario/${userId}`);
+    const data = await res.json();
+
+    if (!res.ok || !data) {
+      perfilView.innerHTML = "<p style='color:red;'>Erro ao carregar perfil.</p>";
+      return;
+    }
+
+    document.getElementById("v-nome").textContent = data.nome || "-";
+    document.getElementById("v-email").textContent = data.email || "-";
+    document.getElementById("v-telefone").textContent = data.telefone || "-";
+    document.getElementById("v-cidade").textContent = data.cidade || "-";
+    document.getElementById("v-estado").textContent = data.estado || "-";
+    document.getElementById("v-cpf").textContent = data.cpf || "-";
+
+    document.getElementById("nome").value = data.nome || "";
+    document.getElementById("telefone").value = data.telefone || "";
+    document.getElementById("cidade").value = data.cidade || "";
+    document.getElementById("estado").value = data.estado || "";
+    document.getElementById("cpf").value = data.cpf || "";
+  }
+
+  btnEditar.addEventListener("click", () => {
+    perfilView.style.display = "none";
+    perfilForm.style.display = "block";
+  });
+
+  btnCancelar.addEventListener("click", () => {
+    perfilForm.style.display = "none";
+    perfilView.style.display = "block";
+  });
+
+  perfilForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.textContent = "";
+
+      const body = {
+  nome: document.getElementById("edit-nome").value.trim(),
+  email: document.getElementById("edit-email").value.trim(),
+  telefone: document.getElementById("edit-telefone").value.trim(),
+  cidade: document.getElementById("edit-cidade").value.trim(),
+  estado: document.getElementById("edit-estado").value.trim(),
+  idade: document.getElementById("edit-idade").value.trim(),
+  sexo: document.getElementById("edit-sexo").value,
+  cpf: document.getElementById("edit-cpf").value.trim()
+};
+
+
+    const res = await fetch("/api/usuario/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+    msg.style.color = res.ok ? "#065f46" : "#b91c1c";
+    msg.textContent = data.mensagem || data.erro;
+
+    if (res.ok) {
+      await carregarPerfil();
+      perfilForm.style.display = "none";
+      perfilView.style.display = "block";
+    }
+  });
+
+  await carregarPerfil();
+});
+</script>
+{% endblock %}

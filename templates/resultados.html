@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}🏆 Resultados — Play Beach Tennis{% endblock %}
+
+{% block content %}
+
+<section class="container">
+  <h1>🏆 Resultados dos Torneios</h1>
+  <p class="lead">Filtre e visualize partidas finalizadas.</p>
+
+  <!-- FILTROS -->
+
+  <div class="card" style="padding:15px;margin-top:10px;">
+    <form id="filtroForm" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+      <select id="torneioSelect" style="padding:8px;min-width:200px;">
+        <option value="">Todos os Torneios</option>
+      </select>
+      <input type="date" id="inicio" style="padding:8px;">
+      <input type="date" id="fim" style="padding:8px;">
+      <button type="submit" class="btn">Filtrar</button>
+    </form>
+  </div>
+
+  <!-- RESULTADOS -->
+
+  <div id="listaResultados" style="margin-top:20px;">
+    <p>Carregando resultados...</p>
+  </div>
+
+  <!-- GRÁFICO DE CAMPEÕES -->
+
+  <div class="card" style="margin-top:15px;padding:15px;">
+    <h3>🏅 Ranking de Campeões</h3>
+    <p style="color:#555;margin-bottom:10px;">Contagem de torneios ganhos por atleta.</p>
+    <canvas id="graficoCampeoes" height="120"></canvas>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const lista = document.getElementById("listaResultados");
+  const torneioSelect = document.getElementById("torneioSelect");
+  const form = document.getElementById("filtroForm");
+  const ctx = document.getElementById("graficoCampeoes");
+
+  // === Carrega torneios no filtro ===
+  async function carregarTorneios() {
+    const res = await fetch("/api/torneios");
+    const data = await res.json();
+    data.forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t.id;
+      opt.textContent = t.nome;
+      torneioSelect.appendChild(opt); // ← corrigido
+    });
+  }
+
+  // === Carrega resultados com filtros ===
+  async function carregarResultados(filtros = {}) {
+    lista.innerHTML = "<p>Carregando resultados...</p>";
+    const params = new URLSearchParams(filtros);
+    const res = await fetch(`/api/resultados?${params.toString()}`);
+    const data = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      lista.innerHTML = "<p style='color:#777;'>Nenhum resultado encontrado.</p>";
+      return;
+    }
+
+    lista.innerHTML = "";
+    data.forEach(r => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.marginBottom = "12px";
+      card.innerHTML = `
+        <strong>${r.torneio || r.torneio_nome || r.nome || "Sem nome"}</strong><br>
+        🏓 ${r.tipo_partida || "Individual"} — Quadra ${r.quadra || "?"}<br>
+        👤 ${r.jogador1 || "-"} vs ${r.jogador2 || "-"}<br>
+        🏅 <strong>${r.vencedor || "—"}</strong><br>
+        📊 Placar: ${r.placar || "N/D"}
+      `;
+      lista.appendChild(card);
+    });
+  }
+
+  // === Gráfico ranking de campeões ===
+  async function carregarRanking() {
+    const res = await fetch("/api/ranking_campeoes");
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return;
+
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: data.map(d => d.atleta),
+        datasets: [{
+          label: "Títulos conquistados",
+          data: data.map(d => d.torneios_ganhos),
+          backgroundColor: "#00a56d",
+          borderColor: "#007b55",
+          borderWidth: 2,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+      }
+    });
+  }
+
+  // === Evento de filtro ===
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const filtros = {
+      torneio_id: torneioSelect.value || "",
+      inicio: document.getElementById("inicio").value || "",
+      fim: document.getElementById("fim").value || ""
+    };
+    carregarResultados(filtros);
+  });
+
+  // Inicialização
+  await carregarTorneios();
+  await carregarResultados();
+  await carregarRanking();
+});
+</script>
+
+{% endblock %}

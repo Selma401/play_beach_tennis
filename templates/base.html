@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{% block title %}Play Beach Tennis{% endblock %}</title>
+
+  {# bloco para meta extras (SEO, redes sociais) #}
+  {% block head %}{% endblock %}
+
+  {# único link para a folha de estilos principal (modo recomendado) #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="/static/css/style.css">
+
+  <style>
+    /* Pequeno fallback/minor styles para garantir layout até o CSS carregar */
+    :root { --brand: #007b55; --brand-strong:#005d40; --accent:#00a56d; --muted:#f7f7f7; }
+    html,body{height:100%;margin:0;font-family: "Segoe UI", Roboto, Arial, sans-serif;background:#f2f2f2;color:#222;}
+    header{background:var(--brand);color:#fff;padding:14px 12px;text-align:center;}
+    header h1{margin:0;font-size:1.25rem;}
+    nav{background:var(--brand-strong);}
+    nav .menu{display:flex;flex-wrap:wrap;gap:0;justify-content:center;margin:0;padding:0;list-style:none;}
+    nav .menu a{display:block;padding:11px 16px;color:#fff;text-decoration:none;font-weight:600;}
+    nav .menu a:hover{background:var(--accent);}
+    main{padding:20px;min-height:70vh;max-width:1200px;margin:18px auto;}
+    footer{background:var(--brand);color:#fff;padding:12px;text-align:center;font-size:0.9rem;margin-top:30px;}
+    @media(max-width:720px){ nav .menu{flex-direction:column;align-items:stretch;} }
+  
+   .header {
+  background: var(--brand);
+  padding: 14px 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+}
+    .menu li:first-child a {
+  background: var(--brand);
+  font-size: 18px;
+  font-weight: 700;
+  cursor: default;
+}
+.menu li:first-child a:hover {
+  background: var(--brand);
+}
+/* === Forçar botões do dashboard do usuário ficarem verdes como no admin === */
+/* MENU DO DASHBOARD / ADMIN — cor sólida sem blocos brancos */
+nav .menu li {
+  background: none !important;
+}
+
+/* Hover igual admin */
+nav .menu li a:hover {
+  background: var(--accent) !important; /* verde claro */
+  color: #fff;
+}
+
+/* Aba ativa destacada */
+nav .menu li a.active {
+  background: var(--brand) !important; /* verde */
+  color: #fff !important;
+  border-bottom: 3px solid #ffd700; /* linha dourada opcional */
+}
+
+
+  </style>
+
+</head>
+<body>
+  <header class="header">
+  <div class="logo">
+    🏖️ <strong>Play Beach Tennis</strong>
+  </div>
+</header>
+
+<nav aria-label="Principal">
+  <ul class="menu">
+
+    {% if session.get('is_admin') %}
+        <li><a href="{{ url_for('dashboard') }}">🏠 Painel</a></li>
+        <li><a href="{{ url_for('usuarios_admin_page') }}">👥 Usuários</a></li>
+        <li><a href="{{ url_for('torneios_admin_page') }}">🏆 Torneios</a></li>
+        <li><a href="{{ url_for('financeiro_page') }}">💰 Financeiro</a></li>
+        <li><a href="{{ url_for('partidas_page') }}">🎾 Partidas</a></li>
+        <li><a href="{{ url_for('reservas_admin_page') }}">📅 Reservas</a></li>
+        <li><a href="/ranking_admin">🏆 Ranking</a></li>
+        <li><a href="#" id="logoutBtn">🚪 Sair</a></li>
+
+    {% elif session.get('user_id') %}
+        <li><a href="{{ url_for('dashboard') }}">🏠 Painel</a></li>
+        <li><a href="{{ url_for('perfil_page') }}">👤 Perfil</a></li>
+        <li><a href="{{ url_for('minhas_inscricoes_page') }}">🧾 Minhas Inscrições</a></li>
+        <li><a href="{{ url_for('ranking_page') }}">🏅 Ranking</a></li>
+        <li><a href="{{ url_for('resultados_page') }}">🏆 Resultados</a></li>
+        <li><a href="#" id="logoutBtn">🚪 Sair</a></li>
+
+    {% else %}
+        <li><a href="{{ url_for('login_page') }}">Entrar</a></li>
+        <li><a href="{{ url_for('register_page') }}">Cadastrar</a></li>
+    {% endif %}
+  </ul>
+</nav>
+  <main role="main">
+    {% block content %}{% endblock %}
+  </main>
+
+ <footer>
+  <p>© {{ current_year }} Play Beach Tennis — Todos os direitos reservados</p>
+</footer>
+
+<script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (!logoutBtn) return;
+
+  logoutBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    if (!confirm("Deseja realmente sair?")) return;
+
+    try {
+      await fetch("{{ url_for('api_logout') }}", { 
+        method: "POST", 
+        credentials: "include" 
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
+    window.location.href = "{{ url_for('login_page') }}";
+  });
+});
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

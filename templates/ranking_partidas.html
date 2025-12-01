@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}📊 Ranking por Torneio/Tipo — Play Beach Tennis{% endblock %}
+{% block content %}
+
+<section class="form-section" style="background:#fff;max-width:1100px;margin:auto;">
+  <h2 style="margin:0 0 6px 0;">📊 Ranking por Torneio e Tipo</h2>
+  <p style="color:#555;margin-top:0;">Use filtros para focar no desempenho específico.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:12px 0;">
+    <div>
+      <label style="font-size:12px;color:#555;">Torneio</label>
+      <select id="filtroTorneio" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6e6e6;">
+        <option value="">Todos</option>
+      </select>
+    </div>
+    <div>
+      <label style="font-size:12px;color:#555;">Tipo de partida</label>
+      <select id="filtroTipo" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6e6e6;">
+        <option value="">Todos</option>
+        <option value="individual">Individual</option>
+        <option value="dupla_masculina">Dupla Masculina</option>
+        <option value="dupla_feminina">Dupla Feminina</option>
+        <option value="dupla_mista">Dupla Mista</option>
+      </select>
+    </div>
+    <div style="align-self:end;">
+      <button id="btnFiltrar" class="btn" style="width:100%;">Filtrar</button>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-top:8px;">
+    <div style="padding:12px;border:1px solid #eee;border-radius:10px;">
+      <h3 style="margin:0 0 6px 0;font-size:16px;">% de vitórias no filtro</h3>
+      <canvas id="graficoPizza" height="170"></canvas>
+    </div>
+    <div style="padding:12px;border:1px solid #eee;border-radius:10px;">
+      <h3 style="margin:0 0 6px 0;font-size:16px;">Vitórias (barra)</h3>
+      <canvas id="graficoBarra" height="190"></canvas>
+    </div>
+  </div>
+
+  <h3 style="margin:18px 0 8px 0;font-size:16px;">Tabela (torneio/tipo)</h3>
+  <table id="tabela" style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr style="background:#f7f7f7;">
+        <th style="padding:8px;border:1px solid #eee;">#</th>
+        <th style="padding:8px;border:1px solid #eee;">Jogador</th>
+        <th style="padding:8px;border:1px solid #eee;">Torneio</th>
+        <th style="padding:8px;border:1px solid #eee;">Tipo</th>
+        <th style="padding:8px;border:1px solid #eee;">Vitórias</th>
+        <th style="padding:8px;border:1px solid #eee;">%</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  async function apiFetch(u,o={}){o.headers={"Content-Type":"application/json"};o.credentials="include";const r=await fetch(u,o);return r.json();}
+  const filtroTorneio = document.getElementById("filtroTorneio");
+  const filtroTipo = document.getElementById("filtroTipo");
+  const btnFiltrar = document.getElementById("btnFiltrar");
+  const corpo = document.querySelector("#tabela tbody");
+  let chartP, chartB; const destroy = c=>c&&c.destroy();
+
+  // carregar torneios (admin tem /api/torneios; se não, cai silencioso)
+  try {
+    const ts = await apiFetch("/api/torneios");
+    ts.forEach(t=>{
+      const o=document.createElement("option");
+      o.value=t.nome; o.textContent=`${t.nome} (${t.status||''})`;
+      filtroTorneio.appendChild(o);
+    });
+  } catch(e){}
+
+  const base = await apiFetch("/api/ranking");
+
+  function aplicaFiltro() {
+    const t=filtroTorneio.value, tipo=filtroTipo.value;
+    return base.filter(r => (!t||r.torneio===t) && (!tipo||r.tipo_partida===tipo));
+  }
+
+  function desenhar(lista) {
+    corpo.innerHTML="";
+    if(!lista.length){
+      corpo.innerHTML="<tr><td colspan='6' style='text-align:center;padding:10px;'>Sem dados.</td></tr>";
+    } else {
+      lista.sort((a,b)=>b.vitorias-a.vitorias).forEach((r,i)=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML=`
+          <td style="padding:8px;border:1px solid #eee;">${i+1}</td>
+          <td style="padding:8px;border:1px solid #eee;">${r.jogador}</td>
+          <td style="padding:8px;border:1px solid #eee;">${r.torneio||"-"}</td>
+          <td style="padding:8px;border:1px solid #eee;">${r.tipo_partida||"-"}</td>
+          <td style="padding:8px;border:1px solid #eee;">${r.vitorias}</td>
+          <td style="padding:8px;border:1px solid #eee;">${r.porcentagem}%</td>`;
+        corpo.appendChild(tr);
+      });
+    }
+
+    const top=[...lista].sort((a,b)=>b.vitorias-a.vitorias).slice(0,6);
+    const labels=top.map(x=>`${x.jogador} (${x.porcentagem}%)`);
+    const dataP=top.map(x=>x.porcentagem);
+    const dataB=top.map(x=>x.vitorias);
+    destroy(chartP); destroy(chartB);
+    chartP=new Chart(document.getElementById("graficoPizza").getContext("2d"),{
+      type:"pie", data:{labels,datasets:[{data:dataP}]},
+      options:{plugins:{legend:{position:"bottom"}}}
+    });
+    chartB=new Chart(document.getElementById("graficoBarra").getContext("2d"),{
+      type:"bar", data:{labels:top.map(x=>x.jogador),datasets:[{label:"Vitórias",data:dataB}]},
+      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+    });
+  }
+
+  desenhar(aplicaFiltro());
+  btnFiltrar.addEventListener("click", ()=>desenhar(aplicaFiltro()));
+});
+</script>
+
+{% endblock %}

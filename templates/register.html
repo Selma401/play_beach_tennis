@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Cadastro — Play Beach Tennis{% endblock %}
+
+{% block content %}
+
+<section class="form-section" style="max-width:650px;margin:auto;">
+  <h2 style="margin-top:0;">📝 Criar conta</h2>
+  <p style="color:#555;margin:6px 0 16px;">Preencha seus dados para se inscrever em torneios.</p>
+
+  <form id="registerForm" novalidate>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="grid-column:1 / -1;">
+        <label for="nome">Nome completo</label>
+        <input id="nome" type="text" required placeholder="Ex.: Ana Silva" style="width:100%;padding:8px;">
+      </div>
+
+      <div>
+        <label for="email">Email</label>
+        <input id="email" type="email" required placeholder="seuemail@exemplo.com" style="width:100%;padding:8px;">
+      </div>
+
+      <div>
+        <label for="senha">Senha</label>
+        <input id="senha" type="password" required minlength="6" placeholder="mín. 6 caracteres" style="width:100%;padding:8px;">
+      </div>
+
+      <div>
+  <label for="cpf">CPF</label>
+  <input id="cpf" type="text" required placeholder="000.000.000-00" style="width:100%;padding:8px;">
+</div>
+
+      <div>
+        <label for="sexo">Sexo</label>
+        <select id="sexo" required style="width:100%;padding:8px;">
+          <option value="">Selecione...</option>
+          <option value="masculino">Masculino</option>
+          <option value="feminino">Feminino</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="idade">Idade</label>
+        <input id="idade" type="number" min="6" max="99" required placeholder="Ex.: 25" style="width:100%;padding:8px;">
+      </div>
+
+      <div>
+        <label for="telefone">Telefone</label>
+        <input id="telefone" type="tel" required placeholder="(DDD) 9xxxx-xxxx" style="width:100%;padding:8px;">
+      </div>
+
+      <div>
+        <label for="cidade">Cidade</label>
+        <input id="cidade" type="text" required placeholder="Ex.: Porteirinha" style="width:100%;padding:8px;">
+      </div>
+
+      <div>
+        <label for="estado">Estado</label>
+        <select id="estado" required style="width:100%;padding:8px;">
+          <option value="">Selecione o estado...</option>
+          <option value="AC">Acre</option>
+          <option value="AL">Alagoas</option>
+          <option value="AP">Amapá</option>
+          <option value="AM">Amazonas</option>
+          <option value="BA">Bahia</option>
+          <option value="CE">Ceará</option>
+          <option value="DF">Distrito Federal</option>
+          <option value="ES">Espírito Santo</option>
+          <option value="GO">Goiás</option>
+          <option value="MA">Maranhão</option>
+          <option value="MT">Mato Grosso</option>
+          <option value="MS">Mato Grosso do Sul</option>
+          <option value="MG">Minas Gerais</option>
+          <option value="PA">Pará</option>
+          <option value="PB">Paraíba</option>
+          <option value="PR">Paraná</option>
+          <option value="PE">Pernambuco</option>
+          <option value="PI">Piauí</option>
+          <option value="RJ">Rio de Janeiro</option>
+          <option value="RN">Rio Grande do Norte</option>
+          <option value="RS">Rio Grande do Sul</option>
+          <option value="RO">Rondônia</option>
+          <option value="RR">Roraima</option>
+          <option value="SC">Santa Catarina</option>
+          <option value="SP">São Paulo</option>
+          <option value="SE">Sergipe</option>
+          <option value="TO">Tocantins</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="submit" class="btn" style="margin-top:14px;">Criar conta</button>
+  </form>
+
+  <div id="msg" style="margin-top:12px;color:#555;"></div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("registerForm");
+  const msg = document.getElementById("msg");
+  if (!form) return;
+
+  async function apiFetch(url, opts = {}) {
+    opts.headers = { "Content-Type": "application/json" };
+    opts.credentials = "include";
+    if (opts.body && typeof opts.body !== "string") opts.body = JSON.stringify(opts.body);
+    const res = await fetch(url, opts);
+    let data = {};
+    try { data = await res.json(); } catch {}
+    if (!res.ok) throw new Error(data.erro || "Falha na requisição");
+    return data;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.textContent = "";
+
+    const nome = document.getElementById("nome").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const senha = document.getElementById("senha").value;
+    const cpf = document.getElementById("cpf").value.trim();
+    const sexo = document.getElementById("sexo").value;
+    const idade = document.getElementById("idade").value;
+    const telefone = document.getElementById("telefone").value.trim();
+    const cidade = document.getElementById("cidade").value.trim();
+    const estado = document.getElementById("estado").value.trim().toUpperCase();
+
+    if (!nome || !email || !senha || !cpf || !sexo || !idade || !telefone || !cidade || !estado) {
+      msg.style.color = "#b91c1c";
+      msg.textContent = "Preencha todos os campos obrigatórios.";
+      return;
+    }
+    if (senha.length < 6) {
+      msg.style.color = "#b91c1c";
+      msg.textContent = "A senha deve ter no mínimo 6 caracteres.";
+      return;
+    }
+
+    try {
+      const r = await apiFetch("/api/register", {
+        method: "POST",
+        body: { nome, email, senha, cpf, sexo, idade, telefone, cidade, estado }
+      });
+      msg.style.color = "#065f46";
+      msg.textContent = r.mensagem || "Cadastro realizado!";
+      setTimeout(() => { window.location.href = "/login"; }, 1000);
+    } catch (err) {
+      msg.style.color = "#b91c1c";
+      msg.textContent = err.message || "Erro ao cadastrar.";
+    }
+  });
+});
+</script>
+{% endblock %}

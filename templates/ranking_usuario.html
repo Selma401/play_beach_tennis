@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}🏅 Ranking — Usuários{% endblock %}
+
+{% block content %}
+<section class="container">
+
+  <div class="card page-header">
+    <h1 class="page-title">🏅 Ranking Geral de Jogadores</h1>
+    <p class="lead">Confira sua posição e seu desempenho.</p>
+  </div>
+
+  <div class="card filtro-card">
+    <input type="text" id="pesquisaJogadorUser" class="input-text" placeholder="🔍 Buscar jogador...">
+  </div>
+
+  <div class="card tabela-card">
+    <table class="tabela" id="rankingTabelaUser">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Jogador</th>
+          <th>Vitórias</th>
+          <th>Pontos</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card tabela-card">
+    <h2>📊 Top 6 Jogadores — Pontuação</h2>
+    <canvas id="graficoRankingUser" height="120"></canvas>
+  </div>
+
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/static/js/ranking_usuario.js"></script>
+{% endblock %}

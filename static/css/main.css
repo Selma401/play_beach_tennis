@@ -1,0 +1,259 @@
+/* ==========================================================
+   static/css/main.css
+   Estilos globais e componentes principais
+   ========================================================== */
+   
+/* 1. Global & Tipografia */
+body {
+    font-family: 'Poppins', 'Inter', sans-serif; /* Usar Google Fonts */
+    background: #F4F7F6; /* Fundo leve */
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 10px;
+}
+
+/* Ajuste de largura do gráfico */
+.grafico-container {
+  max-width: 850px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.08);
+}
+
+canvas {
+  max-width: 100%;
+  height: auto !important;
+}
+
+/* 2. Cards e Seções */
+.card {
+    background: #fff;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08); /* Sombra suave */
+    margin-bottom: 24px;
+}
+
+h2, h3 {
+    color: #007B55; /* Cor Primária */
+    margin-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 5px;
+}
+.subtitle {
+    color: #555;
+    margin-bottom: 20px;
+}
+
+/* 3. Formulários */
+label {
+    display: block;
+    font-weight: 600;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    color: #007B55;
+}
+.form-group {
+    margin-bottom: 16px;
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+.input-select, .input-text {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    outline: none;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+.input-select:focus, .input-text:focus {
+    border-color: #007B55;
+    box-shadow: 0 0 5px rgba(0, 123, 85, 0.3);
+}
+
+/* 4. Botões */
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+.btn {
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 12px 20px;
+    transition: 0.3s;
+    text-align: center;
+}
+.btn.primary {
+    background: #007B55; /* Verde Principal */
+    color: #fff;
+}
+.btn.primary:hover {
+    background: #02663f;
+}
+.btn.secondary {
+    background: #E9ECEF;
+    color: #333;
+}
+.btn.secondary:hover {
+    background: #D3D9DF;
+}
+.btn.full {
+    width: 100%;
+    margin-top: 15px;
+}
+.btn.icon {
+    padding: 8px 10px;
+    font-size: 16px;
+}
+.btn.icon.danger {
+    background: #dc3545; /* Vermelho para Excluir */
+    color: #fff;
+}
+.btn.icon.danger:hover {
+    background: #c82333;
+}
+.btn.icon.save-logistica {
+    background: #FFC107; /* Amarelo/Ouro para Salvar Logística */
+    color: #333;
+}
+.btn.icon.save-logistica:hover {
+    background: #e0a800;
+}
+.btn.icon.primary {
+    background: #28a745; /* Verde para Salvar Resultado */
+    color: white;
+}
+.btn.icon.primary:hover {
+    background: #1e7e34;
+}
+
+/* 5. Tabela Estilizada */
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+.styled-table thead {
+    background: #007B55;
+    color: #fff;
+}
+.styled-table th, .styled-table td {
+    padding: 10px 8px;
+    text-align: center;
+    vertical-align: middle;
+    border-bottom: 1px solid #ddd;
+}
+.styled-table tr:hover {
+    background: #f1f1f1;
+}
+.styled-table .actions {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+}
+.styled-table .empty {
+    color: #999;
+    font-style: italic;
+    padding: 20px;
+}
+.input-edit {
+    width: 100%;
+    padding: 6px;
+    margin-top: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 13px;
+    text-align: center;
+    box-sizing: border-box;
+}
+.input-edit[type="time"] {
+    width: 90px;
+}
+.vencedor-select {
+    margin-top: 5px;
+    width: 100%;
+    padding: 6px;
+    text-align: left;
+}
+/* TONS/ESPACAMENTO GERAIS */
+:root{
+  --brand: #007B55;
+  --ink: #333;
+  --bg: #F4F7F6;
+  --muted:#8a8a8a;
+}
+
+/* Deixar menu do usuário igual ao do admin */
+.user .navbar {
+  background:#007B55;
+}
+
+.user .nav-links .nav-item {
+  color:#fff;
+}
+
+.user .nav-links .nav-item:hover {
+  background:#00a56d;
+  color:#fff;
+}
+
+/* VISUAL DO ADMIN (mantém seu verde institucional) */
+.admin .navbar { background:#007B55; }
+.admin .nav-links .nav-item { color:#fff; }
+.admin .card h2, .admin .card h3 { color:#007B55; }
+
+/* TABELA RESPONSIVA (vale pros dois perfis) */
+.table-responsive { overflow-x:auto; border-radius:8px; }
+.table-responsive .styled-table { min-width: 960px; }
+
+/* --- CARD DO USUÁRIO MAIS PROFISSIONAL --- */
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0px 3px 15px rgba(0,0,0,0.09);
+  border-left: 5px solid #007B55; /* Marca visual */
+}
+
+/* TÍTULO DAS PÁGINAS */
+h1.page-title, h1 {
+  font-size: 1.9rem;
+  color: #007B55;
+  margin-bottom: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* SUBTÍTULO */
+.lead {
+  margin-top: -10px;
+  margin-bottom: 20px;
+  color: #4b4b4b;
+  font-size: 1.05rem;
+}
+
+/* LISTA DE INSCRIÇÕES + ESPAÇAMENTO */
+.card.inscricao {
+  margin-bottom: 18px;
+}

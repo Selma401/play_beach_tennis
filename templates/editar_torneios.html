@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="container">
+  <h2>✏️ Editar Torneio</h2>
+
+  <form id="formEditarTorneio">
+      <input type="hidden" id="id" value="{{ torneio.id }}">
+
+      <label>Nome:</label>
+      <input type="text" id="nome" value="{{ torneio.nome }}">
+
+      <label>Data do Evento:</label>
+      <input type="date" id="data_evento" value="{{ torneio.data_evento }}">
+
+      <label>Preço da Inscrição:</label>
+      <input type="number" id="preco" value="{{ torneio.preco }}">
+
+      <label>Vagas:</label>
+      <input type="number" id="vagas" value="{{ torneio.vagas }}">
+
+      <label>Premiação:</label>
+      <input type="text" id="premiacao" value="{{ torneio.premiacao }}">
+
+      <label>Status:</label>
+      <select id="status">
+        <option value="aberto" {% if torneio.status == "aberto" %}selected{% endif %}>Aberto</option>
+        <option value="em_andamento" {% if torneio.status == "em_andamento" %}selected{% endif %}>Em Andamento</option>
+        <option value="encerrado" {% if torneio.status == "encerrado" %}selected{% endif %}>Encerrado</option>
+      </select>
+
+      <button type="submit" class="btn success">Salvar</button>
+  </form>
+</section>
+
+<script>
+document.getElementById("formEditarTorneio").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const id = document.getElementById("id").value;
+
+  const body = {
+    nome: document.getElementById("nome").value,
+    data_evento: document.getElementById("data_evento").value,
+    preco: document.getElementById("preco").value,
+    vagas: document.getElementById("vagas").value,
+    premiacao: document.getElementById("premiacao").value,
+    status: document.getElementById("status").value
+  };
+
+  const res = await fetch(`/api/torneios/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+
+  const json = await res.json();
+  alert(json.mensagem || json.erro);
+  if (!json.erro) window.location.href = "/torneios_admin";
+});
+</script>
+{% endblock %}

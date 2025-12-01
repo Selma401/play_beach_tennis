@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}📅 Reservas de Quadras — Play Beach Tennis{% endblock %}
+
+{% block content %}
+<section class="container">
+
+  <h2>📅 Gerenciamento de Reservas</h2>
+  <p class="subtitle">Controle reservas de quadras por torneio, horário e usuário.</p>
+
+  <!-- =============================
+       FORMULÁRIO: CRIAR RESERVA
+       ============================= -->
+  <div class="card" style="margin-bottom:25px;">
+    <h3>➕ Criar Nova Reserva</h3>
+
+    <form id="formReserva" class="form-grid">
+      <div>
+        <label>Torneio:</label>
+        <select id="res_torneio_novo" class="input-text" required></select>
+      </div>
+
+      <div>
+        <label>Quadra:</label>
+        <input type="text" id="res_quadra" value="Quadra 1" class="input-text">
+      </div>
+
+      <div>
+        <label>Horário:</label>
+        <input type="time" id="res_horario" class="input-text" required>
+      </div>
+
+      <div>
+        <label>Reservado?</label>
+        <select id="res_reservado" class="input-text">
+          <option value="0">Não</option>
+          <option value="1">Sim</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-editar" style="margin-top:10px;">Salvar Reserva</button>
+      <span id="msgReserva" style="margin-left:10px;"></span>
+    </form>
+  </div>
+
+  <!-- =============================
+       FILTRO + LISTAGEM
+       ============================= -->
+  <div class="card">
+    <h3>📋 Reservas Cadastradas</h3>
+
+    <label>Filtrar por Torneio:</label>
+    <select id="res_torneio_filter" class="input-text">
+      <option value="">Todos os torneios</option>
+    </select>
+
+    <button id="btn_carregar_res" class="btn-editar" style="margin-left:10px;">Carregar</button>
+
+    <table class="tabela" id="tbl_reservas" style="margin-top:15px;">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Torneio</th>
+          <th>Quadra</th>
+          <th>Horário</th>
+          <th>Reservado</th>
+          <th>Usuário</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+</section>
+
+<style>
+  .container { max-width: 1100px; margin: auto; padding: 20px; }
+  .card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+  .tabela { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+  th { background: #007b55; color: #fff; }
+  tr:nth-child(even) { background: #f7f7f7; }
+  button { border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; }
+  .btn-editar { background: #00a56d; color: white; }
+  .btn-excluir { background: #d33; color: white; }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+  }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function api(path, opts = {}) {
+  opts.headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+  opts.credentials = "include";
+  if (opts.body && typeof opts.body !== "string") {
+    opts.body = JSON.stringify(opts.body);
+  }
+  const res = await fetch(path, opts);
+  try { return await res.json(); } catch { return {}; }
+}
+
+// ===============================
+// Preencher torneios nos selects
+// ===============================
+async function preencherTorneios() {
+  const torneios = await api('/api/torneios');
+  const selNovo = document.getElementById("res_torneio_novo");
+  const selFiltro = document.getElementById("res_torneio_filter");
+
+  selNovo.innerHTML = "";
+  selFiltro.innerHTML = `<option value="">Todos os torneios</option>`;
+
+  torneios.forEach(t => {
+    const opt1 = document.createElement("option");
+    opt1.value = t.id;
+    opt1.textContent = t.nome;
+    selNovo.appendChild(opt1);
+
+    const opt2 = document.createElement("option");
+    opt2.value = t.id;
+    opt2.textContent = t.nome;
+    selFiltro.appendChild(opt2);
+  });
+}
+
+// ===============================
+// Criar reserva
+// ===============================
+document.getElementById("formReserva").addEventListener("submit", async e => {
+  e.preventDefault();
+  const msg = document.getElementById("msgReserva");
+
+  const body = {
+    torneio_id: document.getElementById("res_torneio_novo").value,
+    quadra: document.getElementById("res_quadra").value,
+    horario: document.getElementById("res_horario").value,
+    reservado: Number(document.getElementById("res_reservado").value)
+  };
+
+  const res = await api('/api/reservas', { method: "POST", body });
+
+  msg.style.color = res.mensagem ? "green" : "red";
+  msg.textContent = res.mensagem || res.erro;
+
+  setTimeout(() => msg.textContent = "", 3000);
+
+  carregarReservas();
+});
+
+// ===============================
+// Listar reservas
+// ===============================
+async function carregarReservas() {
+  const torneio = document.getElementById("res_torneio_filter").value;
+  const url = torneio ? `/api/reservas?torneio_id=${torneio}` : '/api/reservas';
+
+  const dados = await api(url);
+  const tbody = document.querySelector("#tbl_reservas tbody");
+  tbody.innerHTML = "";
+
+  dados.forEach(r => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.id}</td>
+      <td>${r.torneio_id}</td>
+      <td>${r.quadra}</td>
+      <td>${r.horario}</td>
+      <td>${r.reservado ? "Sim" : "Não"}</td>
+      <td>${r.usuario_id ?? "-"}</td>
+      <td>
+        ${r.reservado ? "" : `<button class="btn-editar btn-reservar" data-id="${r.id}">Reservar</button>`}
+        <button class="btn-excluir btn-excluir" data-id="${r.id}">Excluir</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.querySelectorAll(".btn-reservar").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      const res = await api(`/api/reservas/${id}/toggle`, { method: "POST" });
+      alert(res.mensagem || res.erro);
+      carregarReservas();
+    });
+  });
+
+  document.querySelectorAll(".btn-excluir").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Excluir reserva?")) return;
+      const id = btn.dataset.id;
+      const res = await api(`/api/reservas/${id}`, { method: "DELETE" });
+      alert(res.mensagem || res.erro);
+      carregarReservas();
+    });
+  });
+}
+
+// ===============================
+// Inicialização
+// ===============================
+document.addEventListener("DOMContentLoaded", async () => {
+  await preencherTorneios();
+  await carregarReservas();
+
+  document.getElementById("btn_carregar_res").addEventListener("click", carregarReservas);
+});
+</script>
+{% endblock %}

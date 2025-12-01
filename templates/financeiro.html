@@ -1,0 +1,424 @@
+{% extends "base.html" %}
+{% block title %}Financeiro — Play Beach Tennis{% endblock %}
+
+{% block content %}
+<section class="container">
+
+  <!-- HEADER -->
+  <div class="card page-header">
+    <div class="header-left">
+      <h1 class="page-title">💰 Painel Financeiro</h1>
+      <p class="lead">Gerencie inscrições, vendas e premiações do evento.</p>
+    </div>
+<div class="header-actions">
+  <a href="{{ url_for('dashboard') }}" class="btn toolbar-btn">⬅️ Voltar ao Painel</a>
+  <button class="btn secondary" id="btnExportPdf">📄 Exportar PDF</button>
+</div>
+
+  <!-- ABA DE NAVEGAÇÃO -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="inscricoes">📋 Inscrições</button>
+    <button class="tab-btn" data-tab="vendas">🛍️ Vendas</button>
+    <button class="tab-btn" data-tab="premiacoes">🏆 Premiações</button>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="card filtro-card">
+    <label for="torneioSelect">Torneio:</label>
+    <select id="torneioSelect" class="input-select">
+      <option value="">Todos</option>
+    </select>
+
+    <label>Período:</label>
+    <input type="date" id="dataInicio" class="input-date">
+    <span>até</span>
+    <input type="date" id="dataFim" class="input-date">
+
+    <button class="btn primary" onclick="aplicarFiltro()">🔍 Filtrar</button>
+  </div>
+
+  <!-- RESUMO FINANCEIRO -->
+  <div class="card resumo-card">
+    <div class="resumo-item">
+      <h2 id="totalInscricoes">R$ 0,00</h2>
+      <p>Total Inscrições</p>
+    </div>
+    <div class="resumo-item">
+      <h2 id="totalVendas">R$ 0,00</h2>
+      <p>Total Vendas</p>
+    </div>
+    <div class="resumo-item destaque">
+      <h2 id="totalGeral" class="valor-geral">R$ 0,00</h2>
+      <p>💰 Total Geral</p>
+    </div>
+  </div>
+
+  <!-- GRÁFICO -->
+  <div class="card tabela-card">
+    <h2>📊 Fluxo de Caixa — Inscrições, Vendas e Premiações</h2>
+    <canvas id="graficoFluxo" height="120"></canvas>
+  </div>
+
+  <!-- TABELA DE INSCRIÇÕES -->
+  <div class="card tabela-card tab-content active" id="tab-inscricoes">
+    <h2>📋 Lista de Inscrições</h2>
+    <table class="tabela-financeiro">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Atleta</th>
+          <th>Torneio</th>
+          <th>Forma de Pagamento</th>
+          <th>Valor (R$)</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaInscricoes"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- TABELA DE VENDAS -->
+  <div class="card tabela-card tab-content" id="tab-vendas">
+    <div class="vendas-header">
+      <h2>🛍️ Vendas no Estabelecimento</h2>
+      <button class="btn success" onclick="abrirModalVenda()">➕ Registrar Venda</button>
+    </div>
+    <table class="tabela-financeiro">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Descrição</th>
+          <th>Forma de Pagamento</th>
+          <th>Valor (R$)</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaVendas"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- TABELA DE PREMIAÇÕES -->
+  <div class="card tabela-card tab-content" id="tab-premiacoes">
+    <h2>🏆 Premiações Pagas</h2>
+    <table class="tabela-financeiro">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Atleta</th>
+          <th>Torneio</th>
+          <th>Categoria</th>
+          <th>Valor (R$)</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaPremiacoes"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
+    </table>
+  </div>
+
+</section>
+
+<!-- MODAL NOVA VENDA -->
+<div id="modalVenda" class="modal-bg">
+  <div class="modal-box">
+    <h3>➕ Registrar Nova Venda</h3>
+    <label>Descrição:</label>
+    <input id="descVenda" class="input-text">
+    <label>Valor (R$):</label>
+    <input id="valorVenda" type="number" step="0.01" class="input-text">
+    <label>Forma de Pagamento:</label>
+    <select id="formaVenda" class="input-text">
+      <option value="dinheiro">Dinheiro</option>
+      <option value="pix">Pix</option>
+      <option value="cartao_credito">Cartão de Crédito</option>
+      <option value="cartao_debito">Cartão de Débito</option>
+      <option value="transferencia">Transferência</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn success" onclick="salvarVenda()">Salvar</button>
+      <button class="btn secondary" onclick="fecharModalVenda()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="card tabela-card">
+  <h2>📊 Resumo por Torneio (inscrições)</h2>
+  <table class="tabela" id="tabelaResumoTorneios">
+    <thead>
+      <tr>
+        <th>Torneio</th>
+        <th>Qtd. Inscrições</th>
+        <th>Total (R$)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- preenchido via JS -->
+    </tbody>
+  </table>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+
+  async function api(url, opts = {}) {
+    opts.headers = { "Content-Type": "application/json" };
+    opts.credentials = "include";
+    if (opts.body && typeof opts.body !== "string") opts.body = JSON.stringify(opts.body);
+    const res = await fetch(url, opts);
+    try { return await res.json(); } catch { return []; }
+  }
+
+  // === Tabs ===
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
+    });
+  });
+
+  const selectTorneio = document.getElementById("torneioSelect");
+
+  // === Carregar torneios ===
+  async function carregarTorneios() {
+    const torneios = await api("/api/torneios");
+    torneios.forEach(t => selectTorneio.innerHTML += `<option value="${t.id}">${t.nome}</option>`);
+  }
+
+  // === Filtros ===
+  function filtroQuery() {
+    const t = selectTorneio.value;
+    const i = document.getElementById("dataInicio").value;
+    const f = document.getElementById("dataFim").value;
+    return `?torneio=${t}&inicio=${i}&fim=${f}`;
+  }
+
+  window.aplicarFiltro = async () => {
+    await carregarInscricoes();
+    await carregarVendas();
+    await carregarPremiacoes();
+    atualizarTotalGeral();
+    carregarGrafico();
+      carregarResumoPorTorneio();
+  };
+
+  // === Inscrições ===
+  async function carregarInscricoes() {
+    const tabela = document.getElementById("tabelaInscricoes");
+    tabela.innerHTML = `<tr><td colspan="6" class="empty">Carregando...</td></tr>`;
+    const dados = await api("/api/financeiro/inscricoes" + filtroQuery());
+    if (!dados.length) return tabela.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma inscrição encontrada.</td></tr>`;
+    let total = 0; tabela.innerHTML = "";
+    dados.forEach((i, idx) => {
+      total += Number(i.valor);
+      tabela.innerHTML += `
+        <tr><td>${idx+1}</td><td>${i.atleta}</td><td>${i.torneio}</td><td>${i.forma_pagamento}</td>
+        <td>${Number(i.valor).toFixed(2)}</td><td>${new Date(i.data_inscricao).toLocaleDateString()}</td></tr>`;
+    });
+    document.getElementById("totalInscricoes").textContent = "R$ " + total.toFixed(2);
+  }
+
+  // === Vendas ===
+  async function carregarVendas() {
+    const tabela = document.getElementById("tabelaVendas");
+    tabela.innerHTML = `<tr><td colspan="5" class="empty">Carregando...</td></tr>`;
+    const dados = await api("/api/financeiro/vendas" + filtroQuery());
+    if (!dados.length) return tabela.innerHTML = `<tr><td colspan="5" class="empty">Nenhuma venda registrada.</td></tr>`;
+    let total = 0; tabela.innerHTML = "";
+    dados.forEach((v, idx) => {
+      total += Number(v.valor);
+      tabela.innerHTML += `
+        <tr><td>${idx+1}</td><td>${v.descricao}</td><td>${v.forma_pagamento}</td>
+        <td>${Number(v.valor).toFixed(2)}</td><td>${new Date(v.data_venda).toLocaleDateString()}</td></tr>`;
+    });
+    document.getElementById("totalVendas").textContent = "R$ " + total.toFixed(2);
+  }
+
+  // === Premiações ===
+  async function carregarPremiacoes() {
+    const tabela = document.getElementById("tabelaPremiacoes");
+    tabela.innerHTML = `<tr><td colspan="6" class="empty">Carregando...</td></tr>`;
+    const dados = await api("/api/financeiro/premiacoes" + filtroQuery());
+    if (!dados.length) return tabela.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma premiação registrada.</td></tr>`;
+    let total = 0; tabela.innerHTML = "";
+    dados.forEach((p, idx) => {
+      total += Number(p.valor);
+      tabela.innerHTML += `
+        <tr><td>${idx+1}</td><td>${p.atleta}</td><td>${p.torneio}</td><td>${p.categoria}</td>
+        <td>${Number(p.valor).toFixed(2)}</td><td>${new Date(p.data_pagamento).toLocaleDateString()}</td></tr>`;
+    });
+    return total;
+  }
+
+  // === Total Geral com cor dinâmica ===
+  async function atualizarTotalGeral() {
+    const insc = parseFloat(document.getElementById("totalInscricoes").textContent.replace("R$","")) || 0;
+    const vend = parseFloat(document.getElementById("totalVendas").textContent.replace("R$","")) || 0;
+    const prem = await api("/api/financeiro/premiacoes/total" + filtroQuery()); // retorna número
+    const total = insc + vend - (parseFloat(prem.total) || 0);
+    const el = document.getElementById("totalGeral");
+    el.textContent = "R$ " + total.toFixed(2);
+    if (total > 0) el.style.color = "#007b55";
+    else if (total < 0) el.style.color = "#b91c1c";
+    else el.style.color = "#555";
+  }
+
+  // === Venda – salvar ===
+  window.abrirModalVenda = () => modalVenda.style.display = "flex";
+  window.fecharModalVenda = () => modalVenda.style.display = "none";
+  window.salvarVenda = async () => {
+    await api("/api/financeiro/vendas", { method:"POST", body:{
+      descricao: descVenda.value, valor: valorVenda.value, forma_pagamento: formaVenda.value
+    }});
+    fecharModalVenda(); aplicarFiltro();
+  };
+
+  // === Gráfico ===
+  let graficoFluxo = null;
+
+async function carregarGrafico() {
+  const inscr = Number(document.getElementById("totalInscricoes").textContent.replace("R$","")) || 0;
+  const vend  = Number(document.getElementById("totalVendas").textContent.replace("R$","")) || 0;
+
+  // Buscar total de premiações, sem gráfico diário
+  const prem = await api("/api/financeiro/premiacoes/total" + filtroQuery());
+  const totalPrem = Number(prem.total || 0);
+
+  const ctx = document.getElementById("graficoFluxo");
+  if (!ctx) return;
+
+  if (graficoFluxo) graficoFluxo.destroy();
+
+  graficoFluxo = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["Inscrições", "Vendas", "Premiações (saída)"],
+      datasets: [{
+        label: "Fluxo de Caixa (R$)",
+        data: [inscr, vend, -totalPrem],
+        backgroundColor: ["#007b55", "#2980b9", "#c0392b"]
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `R$ ${ctx.raw.toFixed(2)}`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: (value) => "R$ " + value.toFixed(2)
+          }
+        }
+      }
+    }
+  });
+}
+
+// 🔹 Resumo por Torneio — Inscrições
+async function carregarResumoPorTorneio() {
+  try {
+    const res = await fetch("/api/financeiro/inscricoes" + filtroQuery(), {
+      credentials: "include"
+    });
+    const inscricoes = await res.json();
+
+    const mapa = {}; // { nomeTorneio: { qtd, total } }
+
+    inscricoes.forEach(l => {
+      const nome = l.torneio || "Sem nome";
+      if (!mapa[nome]) mapa[nome] = { qtd: 0, total: 0 };
+      mapa[nome].qtd += 1;
+      mapa[nome].total += Number(l.valor || 0);
+    });
+
+    const tbody = document.querySelector("#tabelaResumoTorneios tbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    const torneiosOrdenados = Object.keys(mapa).sort();
+
+    if (!torneiosOrdenados.length) {
+      tbody.innerHTML = `<tr><td colspan="3" class="empty">Nenhuma inscrição encontrada.</td></tr>`;
+      return;
+    }
+
+    torneiosOrdenados.forEach(nome => {
+      const linha = mapa[nome];
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${nome}</td>
+        <td>${linha.qtd}</td>
+        <td>R$ ${linha.total.toFixed(2)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (e) {
+    console.error("Erro ao carregar resumo por torneio:", e);
+  }
+}
+
+await carregarTorneios();
+await aplicarFiltro();
+await carregarResumoPorTorneio(); 
+    const btnExportPdf = document.getElementById("btnExportPdf");
+  if (btnExportPdf) {
+    btnExportPdf.addEventListener("click", () => {
+      window.print();
+    });
+  }
+
+});
+</script>
+
+<style>
+.tabs { display:flex; gap:10px; margin:15px 0; }
+.tab-btn { background:#eee; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:600; }
+.tab-btn.active { background:#0E7C66; color:white; }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+.valor-geral { font-size:28px; font-weight:900; }
+
+.resumo-card { display:flex; justify-content:space-around; flex-wrap:wrap; background:#fff; padding:20px; border-radius:10px; margin-bottom:20px; }
+.resumo-item { text-align:center; flex:1; min-width:180px; }
+.resumo-item h2 { margin:0; color:#0E7C66; }
+
+.filtro-card { display:flex; flex-wrap:wrap; gap:12px; align-items:center; background:#fff; padding:15px; border-radius:10px; margin-bottom:15px; }
+.tabela-financeiro { width:100%; border-collapse:collapse; }
+.tabela-financeiro th, .tabela-financeiro td { border:1px solid #ccc; padding:8px; text-align:center; }
+.tabela-financeiro th { background:#007b55; color:white; }
+
+.modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; }
+.modal-box { background:white; padding:20px; border-radius:10px; width:300px; }
+.modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:10px; }
+@media print {
+  header,
+  nav,
+  footer,
+  #btnExportPdf,
+  .toolbar-btn {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  .container {
+    margin: 0;
+    max-width: 100%;
+    box-shadow: none;
+  }
+}
+
+</style>
+{% endblock %}

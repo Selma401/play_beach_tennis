@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Recuperar Senha — Play Beach Tennis{% endblock %}
+
+{% block content %}
+<section class="container">
+  <h2>🔐 Recuperar Senha</h2>
+  <p>Informe o e-mail usado no cadastro.</p>
+
+  <form action="/forgot" method="POST">
+    <input type="email" name="email" placeholder="Digite seu e-mail" required>
+    <button class="btn btn-primary">Enviar</button>
+  </form>
+
+  {% if msg %}
+    <p class="alert">{{ msg }}</p>
+  {% endif %}
+</section>
+{% endblock %}

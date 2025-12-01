@@ -1,0 +1,176 @@
+/* 🎾 PLAY BEACH TENNIS — UI PROFISSIONAL 2025 */
+
+/* PALETA */
+:root {
+  --brand: #007B55;
+  --brand-light: #00C67A;
+  --brand-dark: #02663F;
+  --bg: #F4F7F6;
+  --card: #FFFFFF;
+  --text: #1E1E1E;
+  --muted: #6E6E6E;
+  --border: #D8E2DC;
+  --radius: 12px;
+  --shadow: 0 6px 18px rgba(0,0,0,0.10);
+}
+
+/* GLOBAL */
+body {
+  font-family: "Poppins", sans-serif;
+  background: var(--bg);
+  margin: 0;
+  color: var(--text);
+}
+
+/* NAVBAR (igual admin e usuário) */
+.navbar {
+  background: var(--brand);
+  padding: 14px 0;
+  box-shadow: var(--shadow);
+}
+
+.nav-links .nav-item {
+  color: #fff;
+  font-weight: 600;
+}
+
+.nav-links .nav-item:hover {
+  opacity: 0.8;
+}
+
+/* SEÇÕES */
+.container {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 15px;
+}
+
+.card {
+  background: var(--card);
+  padding: 27px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 26px;
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+/* TÍTULOS */
+h1, h2, h3 {
+  color: var(--brand);
+  margin-top: 0;
+  font-weight: 700;
+  padding-bottom: 7px;
+  border-bottom: 2px solid #E9ECEF;
+}
+
+/* FORMULÁRIOS */
+label {
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.input-text, .input-select {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  transition: 0.2s;
+  margin-bottom: 8px;
+}
+
+.input-text:focus, .input-select:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(0, 123, 85, 0.15);
+}
+
+/* BOTÕES */
+.btn {
+  padding: 12px 18px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.btn.primary { background: var(--brand); color: white; }
+.btn.primary:hover { background: var(--brand-dark); }
+
+.btn.secondary { background: #EAF0EE; color: var(--text); }
+.btn.secondary:hover { background: #D6E4DF; }
+
+.btn.success { background: var(--brand-light); color: white; }
+.btn.danger { background: #D64545; color: white; }
+
+/* TABELAS */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 0.95rem;
+}
+
+th {
+  background: var(--brand);
+  color: white;
+  padding: 12px;
+}
+
+td {
+  background: white;
+  padding: 12px;
+  border-bottom: 1px solid #EDEDED;
+}
+
+tr:hover td {
+  background: #F7FFF9;
+}
+
+/* RESPONSIVO */
+@media (max-width: 780px) {
+  table { font-size: 0.82rem; }
+  .card { padding: 20px; }
+  .btn { padding: 10px 14px; }
+}
+
+/* Reduz largura do gráfico e centraliza */
+.grafico-container {
+  max-width: 850px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.08);
+}
+
+/* Impede o gráfico de se esticar */
+canvas {
+  max-width: 100%;
+  height: auto !important;
+}
+
+.grafico-container {
+  max-width: 650px;    /* largura ideal */
+  margin: 0 auto;      /* centraliza */
+  padding: 20px 0;
+}
+
+#graficoRanking {
+  width: 100% !important;
+  height: 360px !important;
+}
+
+.boas-vindas {
+  background-color: #007b55;
+  padding: 10px 18px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 600;
+  display: inline-block;
+}

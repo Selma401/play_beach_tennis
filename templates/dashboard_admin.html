@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block title %}👥 Gerenciar Usuários — Play Beach Tennis{% endblock %}
+
+{% block content %}
+<section class="container dashboard">
+  <div class="welcome-card">
+    <h2>👥 Gerenciar Usuários</h2>
+    <p>Administre e cadastre usuários do sistema.</p>
+  </div>
+
+  <div class="toolbar">
+    <button id="btnNovo" class="btn">➕ Novo Usuário</button>
+  </div>
+
+  <div class="card">
+    <h3>📋 Lista de Usuários</h3>
+    <table class="tabela" id="tabelaUsuarios">
+      <thead>
+    <tr>
+      <th>#</th>
+      <th>Nome</th>
+      <th>CPF</th>
+      <th>Sexo</th>
+      <th>Idade</th>
+      <th>Telefone</th>
+      <th>Cidade</th>
+      <th>Estado</th>
+      <th>Email</th>
+      <th>Ações</th> 
+    </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- MODAL DE CADASTRO / EDIÇÃO -->
+  <div id="modalUsuario" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3 id="tituloModal">➕ Novo Usuário</h3>
+      <form id="formUsuario">
+        <input type="hidden" id="user-id">
+
+        <label>Nome</label>
+        <input type="text" id="user-nome" required>
+
+        <label>Email</label>
+        <input type="email" id="user-email" required>
+
+        <label>Telefone</label>
+        <input type="text" id="user-telefone">
+
+        <label>Cidade</label>
+        <input type="text" id="user-cidade">
+
+        <label>Estado</label>
+        <input type="text" id="user-estado" maxlength="2" placeholder="Ex: MG">
+
+        <label>CPF</label>
+        <input type="text" id="user-cpf">
+
+        <label>Senha (somente novo usuário)</label>
+        <input type="password" id="user-senha">
+
+        <div class="btn-group">
+          <button type="submit" class="btn">💾 Salvar</button>
+          <button type="button" id="cancelar" class="btn secundario">Cancelar</button>
+        </div>
+      </form>
+      <p id="msgUsuario" class="mensagem"></p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .dashboard { max-width: 1000px; margin: 30px auto; }
+  .card, .welcome-card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+  .welcome-card { background: #007b55; color: white; }
+  .toolbar { margin-bottom: 15px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+  th { background: #007b55; color: #fff; }
+  tr:nth-child(even) { background: #f7f7f7; }
+  .btn { background: #007b55; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; }
+  .btn:hover { background: #00a56d; }
+  .secundario { background: #ccc; color: #333; }
+  .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
+  .modal-content { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+  .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+  input { width: 100%; padding: 6px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; }
+</style>
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const tabela = document.querySelector("#tabelaUsuarios tbody");
+  const modal = document.getElementById("modalUsuario");
+  const form = document.getElementById("formUsuario");
+  const msg = document.getElementById("msgUsuario");
+  const cancelar = document.getElementById("cancelar");
+  const btnNovo = document.getElementById("btnNovo");
+  const tituloModal = document.getElementById("tituloModal");
+
+  async function api(path, opts = {}) {
+    opts.headers = { "Content-Type": "application/json" };
+    if (opts.body && typeof opts.body !== "string") opts.body = JSON.stringify(opts.body);
+    const res = await fetch(path, opts);
+    try { return await res.json(); } catch { return {}; }
+  }
+
+  async function carregarUsuarios() {
+    const usuarios = await api("/api/usuarios");
+    tabela.innerHTML = "";
+    usuarios.forEach(u => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+  <td>${u.id}</td>
+  <td>${u.nome}</td>
+  <td>${u.cpf || '-'}</td>
+  <td>${u.sexo || '-'}</td>
+  <td>${u.idade || '-'}</td>
+  <td>${u.telefone || '-'}</td>
+  <td>${u.cidade || '-'}</td>
+  <td>${u.estado || '-'}</td>
+  <td>${u.email}</td>
+  <td>
+    <button class="btn editar" data-id="${u.id}">✏️ Editar</button>
+    <button class="btn excluir" data-id="${u.id}" style="background:#d33;">🗑 Excluir</button>
+  </td>
+`;
+      tabela.appendChild(tr);
+    });
+
+    document.querySelectorAll(".editar").forEach(btn => {
+      btn.addEventListener("click", async e => {
+        const id = e.target.dataset.id;
+        const user = await api(`/api/usuario/${id}`);
+        abrirModal(user);
+      });
+    });
+
+    document.querySelectorAll(".excluir").forEach(btn => {
+      btn.addEventListener("click", async e => {
+        const id = e.target.dataset.id;
+        if (confirm("Tem certeza que deseja excluir este usuário?")) {
+          const res = await api(`/api/usuarios/${id}`, { method: "DELETE" });
+          alert(res.mensagem || res.erro);
+          carregarUsuarios();
+        }
+      });
+    });
+  }
+
+  function abrirModal(user = null) {
+    modal.style.display = "flex";
+    msg.textContent = "";
+    if (user) {
+      tituloModal.textContent = "✏️ Editar Usuário";
+     document.getElementById("user-id").value = user.id;
+document.getElementById("user-nome").value = user.nome;
+document.getElementById("user-email").value = user.email;
+document.getElementById("user-telefone").value = user.telefone || "";
+document.getElementById("user-cidade").value = user.cidade || "";
+document.getElementById("user-estado").value = user.estado || "";
+document.getElementById("user-cpf").value = user.cpf || "";
+document.getElementById("user-senha").value = "";
+document.getElementById("user-sexo").value = user.sexo || "";
+document.getElementById("user-idade").value = user.idade || "";
+    } else {
+      tituloModal.textContent = "➕ Novo Usuário";
+      form.reset();
+      document.getElementById("user-id").value = "";
+    }
+  }
+
+  btnNovo.addEventListener("click", () => abrirModal());
+  cancelar.addEventListener("click", () => modal.style.display = "none");
+  window.addEventListener("click", e => { if (e.target === modal) modal.style.display = "none"; });
+
+  form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  msg.textContent = "";
+
+  const id = document.getElementById("user-id").value;
+
+  const body = {
+    nome: document.getElementById("user-nome").value.trim(),
+    email: document.getElementById("user-email").value.trim(),
+    telefone: document.getElementById("user-telefone").value.trim(),
+    cidade: document.getElementById("user-cidade").value.trim(),
+    estado: document.getElementById("user-estado").value.trim(),
+    cpf: document.getElementById("user-cpf").value.trim(),
+    sexo: document.getElementById("user-sexo")?.value || null,
+    idade: document.getElementById("user-idade")?.value.trim() || null,
+    senha: document.getElementById("user-senha").value.trim()
+  };
+
+  const endpoint = id ? `/api/usuarios/${id}` : "/api/register";
+  const method = id ? "PUT" : "POST";
+
+  const res = await api(endpoint, { method, body });
+
+  msg.style.color = res.erro ? "#b91c1c" : "#065f46";
+  msg.textContent = res.mensagem || res.erro;
+
+  if (!res.erro) {
+    setTimeout(() => {
+      modal.style.display = "none";
+      carregarUsuarios();
+    }, 1000);
+  }
+});
+  await carregarUsuarios();
+});
+</script>
+{% endblock %}
+{% endblock %}
